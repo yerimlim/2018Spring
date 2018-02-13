@@ -1,0 +1,17 @@
+Disease,Gender,Specimen,Symptoms_Status,Sample_size,True_positive,False_positive,True_negative,False_negative
+Chlamydia,Male,Swab,Symptomatic,676,190,15,464,7
+Chlamydia,Male,Swab,Asymptomatic,388,70,5,309,4
+Chlamydia,Male,Urine,Symptomatic,694,199,8,484,3
+Chlamydia,Male,Urine,Asymptomatic,400,77,4,316,3
+Chlamydia,Female,Swab,Symptomatic,819,133,22,653,11
+Chlamydia,Female,Swab,Asymptomatic,569,61,6,501,1
+Chlamydia,Female,Urine,Symptomatic,821,136,8,668,9
+Chlamydia,Female,Urine,Asymptomatic,569,60,5,502,2
+Gonorrhea,Male,Swab,Symptomatic,724,304,5,412,3
+Gonorrhea,Male,Swab,Asymptomatic,378,15,12,351,0
+Gonorrhea,Male,Urine,Symptomatic,750,311,1,433,5
+Gonorrhea,Male,Urine,Asymptomatic,383,13,2,368,0
+Gonorrhea,Female,Swab,Symptomatic,881,94,15,772,0
+Gonorrhea,Female,Swab,Asymptomatic,596,31,2,562,1
+Gonorrhea,Female,Urine,Symptomatic,883,87,7,782,7
+Gonorrhea,Female,Urine,Asymptomatic,599,28,3,564,4
