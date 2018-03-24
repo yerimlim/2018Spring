@@ -1,0 +1,298 @@
+---
+title: "Clustering with Dataminig"
+output:
+  prettydoc::html_pretty:
+    highlight: github
+    theme: architect
+---
+
+  html_document: default
+  github_document: default
+  html_notebook: default
+
+
+```{r echo=FALSE}
+# include this code chunk as-is to set options
+knitr::opts_chunk$set(comment = NA, prompt = FALSE, out.width = 750, fig.height = 8, fig.width = 8)
+```
+
+# About our data
+- gene information tells how many copy one has. Each informations are drawn from 6 probes which are denoted as variable P4075, P4076, P4077, P4078, P4079, P4080. 
+- Data is observed from 408 genes(people?). 
+
+
+# 1. Let's check how our data looks like(linearity, normality etc.)
+
+
+#### We have 6 variables, and there seems to be 2 missing values(NA).
+```{r}
+cnp6 <- read.csv("./cnp6.csv")
+head(cnp6)
+summary(cnp6)
+str(cnp6)
+```
+
+#### Let's remove missing values
+```{r}
+
+# <U+ACB0><U+CE21><U+CE58><U+AC00> <U+BA87> <U+AC1C> <U+C788><U+B294><U+C9C0> <U+D568><U+C218><U+B85C> <U+AD6C><U+D55C><U+B2E4>.
+counting.missing.values <- function(x) {
+  count.na <- rep(NA, length(x) - 1)
+  for (i in 1:length(x) - 1) {
+    count.na[i] <- sum(is.na(x[, i + 1]))
+  }
+  print(count.na)
+}
+
+counting.missing.values(cnp6)
+
+# <U+ACB0><U+CE21><U+CE58><U+B97C> <U+C81C><U+AC70><U+D558><U+C790>.
+cnp6.narm <- na.omit(cnp6)
+dim(cnp6.narm)
+```
+
+<br/><br/>
+
+#### linear relationship between each variable
+- variable P4080 & P4079, P4080 & P4078, P4079 & P4075 seems to have linear relationship.
+- Whereas P4079& p4077, p4080 & p4076 seems to have almost no linear relationship(random relationship). 
+
+```{r}
+library(ggplot2)
+panel.lm <- function(x, y, col=par("col"), bg=NA, pch=par("pch"),
+                     cex=1, col.smooth="black", ...) {
+  points(x, y, pch = 20, col = alpha("midnightblue", 0.2), bg = bg, cex = cex)
+  abline(stats::lm(y~x), col = col.smooth, ...)
+}
+
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
+  usr <- par("usr")
+  on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if (missing(cex.cor)) cex.cor <- 0.8 / strwidth(txt)
+  text(.5, 0.5, txt, cex = cex.cor * r)
+}
+
+
+panel.hist <- function(x, ...) {
+  usr <- par("usr")
+  on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1.5))
+  h <- hist(x, plot = FALSE)
+  breaks <- h$breaks
+  nB <- length(breaks)
+  y <- h$counts
+  y <- y / max(y)
+  rect(breaks[-nB], 0, breaks[-1], y, col = "darkblue", ...)
+}
+
+
+pairs(
+  cnp6.narm[2:7],
+  lower.panel = panel.lm,
+  upper.panel = panel.cor,
+  diag.panel = panel.hist,
+  pch = 20,
+  main = "scatter-plot matrix, correlation coef., histogram"
+)
+```
+
+
+#### Let'do PCA anlaysis.  -> doenst seem to be significant
+```{r}
+pr.out <- prcomp(cnp6.narm[2:7], scale = TRUE)
+Cols <- function(vec) {
+  cols <- rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])
+}
+```
+
+# 2. Hierarchichal Clustering
+
+#### Which method fits best for our data? 
+- complete method calculated with maximum distance matrix!
+```{r}
+library(NbClust)
+library(factoextra)
+
+cnp.scaled <- cbind(cnp6.narm$RowNames, scale(cnp6.narm[, 2:7]))
+# cnp.dist.man <- dist(cnp.scaled, method = "manhattan")
+# cnp.dist.euc <- dist(cnp.scaled, method = "euclidean")
+# cnp.dist.can <- dist(cnp.scaled, method = "canberra")
+cnp.dist.max <- dist(cnp.scaled, method = "maximum")
+# cnp.dist.mink <- dist(cnp.scaled, method = "minkowski")
+#
+# cnp.hclust.man <- hclust(cnp.dist.man, method = "average")
+# cnp.hclust.euc <- hclust(cnp.dist.euc, method = "average")
+# cnp.hclust.can <- hclust(cnp.dist.can, method = "average")
+# cnp.hclust.max1 <- hclust(cnp.dist.max, method = "average") #less good
+cnp.hclust.max2 <- hclust(cnp.dist.max, method = "complete")
+# cnp.hclust.mink <- hclust(cnp.dist.mink, method = "average")
+# summary(cnp.hclust.man)
+# summary(cnp.hclust.euc)
+# summary(cnp.hclust.can)
+summary(cnp.hclust.max2)
+# summary(cnp.hclust.mink)
+#
+#
+# par(mfrow=c(2,2))
+#
+# plot(cnp.hclust.euc)
+# plot(cnp.hclust.man)
+# plot(cnp.hclust.can)
+# plot(cnp.hclust.euc)
+# plot(cnp.hclust.max1)
+plot(cnp.hclust.max2)
+```
+
+
+# 3. Detemining number of clusters
+
+
+#### nbclust
+- Dividing data into 3 groups seems to be the best.
+```{r}
+library("NbClust")
+nb <- NbClust(
+  cnp.scaled, distance = "maximum",
+  min.nc = 2, max.nc = 10, method = "kmeans"
+)
+nbc <- fviz_nbclust(nb)
+nbc
+```
+
+
+####  Let's visualize the result. 
+- **number of clusters** : 3
+- **distance method** : maximum
+- **clustering method** : complete
+```{r}
+library(RColorBrewer)
+fviz_dend(
+  cnp.hclust.max2, k = 3, cex = 0.3,
+  k_colors = brewer.pal(3, "Set1"),
+  color_labels_by_k = TRUE, rect = TRUE
+)
+
+hc.class <- cutree(cnp.hclust.max2, k = 3)
+table(hc.class)
+plot(table(hc.class))
+```
+
+# 4. Kmeans clustering
+
+#### this is distance matrix visualized in a plot
+```{r}
+fviz_dist(
+  cnp.dist.max,
+  gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07")
+)
+```
+
+```{r}
+m <- 20
+set.seed(100)
+wss <- numeric(m)
+for (i in 1:m) {
+  cnp.km <- kmeans(cnp.scaled[, 2:7], centers = i)
+  wss[i] <- cnp.km$tot.withinss
+}
+
+plot(
+  wss, type = "b",
+  xlab = "K (number of clusters)",
+  ylab = "Total within sum of squares"
+)
+
+cnp.km.3 <- kmeans(
+  cnp.scaled[, 2:7],
+  centers = 3, nstart = 40
+)
+```
+
+#### Visualizing results
+```{r}
+panel.lm.km <- function(x, y, col=par("col"), bg=NA, pch=par("pch"),
+                        cex=0.2, col.smooth="black", ...) {
+  points(x, y, pch = cnp.km.3$cluster, col = cnp.km.3$cluster, bg = bg, cex = cex)
+  abline(stats::lm(y~x), col = col.smooth, ...)
+}
+
+pairs(
+  cnp.scaled[, 2:7],
+  lower.panel = panel.lm.km,
+  upper.panel = panel.cor,
+  diag.panel = panel.hist,
+  pch = 20,
+  main = "scatter-plot matrix, correlation coef., histogram"
+)
+```
+
+```{r}
+fviz_cluster(cnp.km.3, data = cnp.scaled[, 2:7])
+```
+
+
+```{r}
+cnp.km.3$cluster <- as.factor(cnp.km.3$cluster)
+# ggplot(cnp.scaled, aes(p4075, p4076, color = cnp.km$cluster)) + geom_point()
+```
+
+
+
+#### Let's see other methods as well, whether 3 clusters are optimal. 
+#### Elbow Method
+```{r}
+fviz_nbclust(cnp.scaled, kmeans, method = "wss") +
+  geom_vline(xintercept = 3, linetype = 2) +
+  labs(subtitle = "Elbow method")
+```
+
+
+#### Silhouette method 
+```{r}
+fviz_nbclust(cnp.scaled, kmeans, method = "silhouette") + # This stays 2clusters are optimal cluster.
+  labs(subtitle = "Silhouette method")
+```
+
+
+
+#### Gap statistics
+```{r}
+nboot <- 50
+set.seed(123)
+fviz_nbclust(
+  cnp.scaled, kmeans,
+  nstart = 25, method = "gap_stat",
+  nboot = 50
+) +
+  labs(subtitle = "Gap statistic method")
+```
+
+
+# 5. Mixture model 
+```{r}
+library(mclust)
+fit <- Mclust(cnp6.narm[, 2:7])
+plot(fit, what = "classification")
+
+table(fit$classification)
+```
+
+# 6.Analyzing with result. 
+#### anlaysis
+```{r}
+cnp.cluster <- cbind(cnp.scaled, fit$classification)
+colname <- colnames(cnp.cluster[, 2:7])
+colnames(cnp.cluster) <- c("id", colname, "class")
+colnames(cnp.cluster)
+
+library(dplyr)
+# cnp.scaled[, 2:7] %>%
+#   mutate(Cluster = cnp.km.3$cluster) %>%
+#   group_by(Cluster) %>%
+#   summarise_all("mean")
+```

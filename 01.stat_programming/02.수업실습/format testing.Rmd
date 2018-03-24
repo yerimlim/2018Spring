@@ -1,0 +1,85 @@
+---
+title: "Week 3"
+output: 
+  prettydoc::html_pretty:
+      theme: architect
+      highlight: github
+
+---
+
+
+```{r echo=FALSE}
+# include this code chunk as-is to set options
+knitr::opts_chunk$set(comment=NA, prompt=FALSE, out.width=750, fig.height=8, fig.width=8)
+```
+
+output: 
+  slidy_presentation:
+    incremental: true
+runtime: shiny
+  
+
+output:
+  html_document:
+    theme: journal
+    hightlight: tango
+
+output: 
+    md_document:
+        variant: markdown_github
+
+output: 
+  prettydoc::html_pretty:
+      theme: architect
+      highlight: github
+
+# 3주차 수업 
+
+## 지난 시간 복습 : 자료의 복습
+- 벡터에 대해 배웠다. 벡터의 생성과 관련 함수들을 배웠다. 
+- 객체의 종류에 대해서도 배웠다. 
+  + 숫자형(정수 실수 복소수)
+  + 문자형
+  + 논리형
+  + 특수한 상태를 나타내는 상수 (NULL, NA, NaN)
+  
+```{r, results='hide'}
+x <- 2
+x <- 3
+1:10
+c(2,3,4)
+seq(1,3,by=0.5)
+seq(1,3)
+seq(1,7, length=3)
+
+```
+
+
+이번 시간에는 행렬을 배울 것이다. 
+객체의 종류
+
+
+```{r}
+matrix(1:10, 2,5, byrow = T)
+x <- sample(1:100, 20, replace = T)
+x
+sort(x)
+x[20]=NA
+x
+length(x)
+length(unique(x))
+```
+
+```{r}
+sort(x, decreasing = TRUE)
+-sort(-x) #sort의 decreasing옵션과 동일한 결과값을 도출한다. 
+```
+
+```{r}
+
+
+
+
+
+```
+
